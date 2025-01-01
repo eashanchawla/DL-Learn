@@ -1,5 +1,5 @@
-from typing import Tuple, Optional
 from __future__ import annotations
+from typing import Tuple, Optional, List
 import math
 
 class Value:
@@ -59,6 +59,13 @@ class Value:
         out._backward = _backward
         return out
     
+    def relu(self):
+        out = Value(self.data if self.data > 0 else 0, _op='relu', _parents=(self,))
+        def _backward():
+            self.grad += out.grad * (out.data > 0) # since out = (constant, 0 or positive) * self, d(out)/ d(self) = 0 if const 0, else 1
+        out._backward = _backward
+        return out
+
     def tanh(self):
         x = (2 * self).exp()
         out = (x - 1) / (x + 1)
@@ -76,23 +83,27 @@ class Value:
         '''when we call a / b on 2 value objects, a.__truediv__(b) is called.'''
         out = self * (other ** -1)
         return out
-    
-    def relu():
-        '''ReLU activation implementation'''
 
+    def __rtruediv__(self, other):
+        '''when we call a / b on 2 value objects, a.__truediv__(b) is called.'''
+        out = other * (self ** -1)
+        return out
+    
     def __neg__(self):
         return self * -1
     
     def __sub__(self, other):
         return self + (-other)
+    
+    def __rsub__(self, other):
+        return other + (-self)
 
     def backward(self):
-        '''doing a topological sort to get order in which we must execute back propagation'''
         ordering = []
-        visited = []
+        visited = set()
         def topological_traversal(e):
             if e not in visited:
-                visited.append(e)
+                visited.add(e)
                 if e._parents:
                     for parent in e._parents:
                         topological_traversal(parent)
