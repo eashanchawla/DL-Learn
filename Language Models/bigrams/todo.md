@@ -1,86 +1,105 @@
-# To-Do List for Building a Bigram Language Model and Neural Network Approach
+# Hints for Building the Bigram Language Model and Neural Network Approach
 
 ## Part 1: Bigram Language Model Using Counts
 
-1. **Load and Explore the Dataset**
-   - Load `names.txt` from the GitHub repository.
-   - Read all names into a Python list.
-   - Analyze the dataset to determine the total number of names, and find the shortest and longest name lengths.
+1. **Loading the Dataset**
+   - Use Python's built-in `open` function to read `names.txt`.
+   - Split the content by lines to get individual names.
 
-2. **Create Bigrams**
-   - For each name, add special start and end tokens.
-   - Generate all consecutive character pairs (bigrams) from each name.
+2. **Creating Bigrams**
+   - Consider using list comprehensions for efficient bigram generation.
+   - Remember to prepend and append special tokens (e.g., `.` for start and end).
 
-3. **Count Bigram Frequencies**
-   - Initialize a dictionary to store bigram counts.
-   - Iterate through all bigrams and count their occurrences.
+3. **Counting Bigrams**
+   - Utilize Python's `defaultdict` from the `collections` module to simplify counting.
+   - Iterate through each bigram and increment its count in the dictionary.
 
-4. **Convert Counts to a 2D Tensor**
-   - Create a mapping from each character to a unique integer index.
-   - Initialize a 2D PyTorch tensor to store bigram counts based on the character indices.
-   - Populate the tensor with the counted bigram frequencies.
+4. **Mapping Characters to Indices**
+   - Use Python's `sorted` function to maintain a consistent character order.
+   - Include the special start/end token in your character set.
 
-5. **Visualize Bigram Counts**
-   - Use `matplotlib` to create a visual representation of the bigram counts tensor.
-   - Annotate the visualization with corresponding character pairs and their counts.
+5. **Populating the Tensor**
+   - Initialize the tensor with `torch.zeros` and specify the appropriate data type.
+   - Loop through the bigram counts and assign them to the correct tensor indices.
 
-6. **Implement Sampling from the Bigram Model**
-   - Normalize the bigram counts tensor to obtain probability distributions for each preceding character.
-   - Write a sampling function that:
-     - Starts with the start token.
-     - Iteratively samples the next character based on the current character's probability distribution.
-     - Stops sampling when the end token is generated.
-   - Generate multiple sample names using the sampling function.
+6. **Visualization Tips**
+   - Use `plt.imshow` for a heatmap representation.
+   - Add labels for clarity using `plt.xticks` and `plt.yticks`.
 
-7. **Calculate the Loss Function**
-   - Define the negative log likelihood loss based on the bigram probabilities and the actual data.
-   - Compute the loss for the entire dataset.
+7. **Sampling Function**
+   - Use `torch.multinomial` to sample from the probability distributions.
+   - Implement a loop that continues sampling until the end token is reached.
 
-8. **Apply Model Smoothing**
-   - Add fake counts (e.g., add one to all bigram counts) to smooth the probability distributions.
-   - Recompute the normalized probabilities with the smoothed counts.
-   - Recalculate the loss with the smoothed model.
+8. **Calculating Loss**
+   - Use `torch.log` to compute the log probabilities.
+   - Sum the log probabilities of the correct bigrams and take the negative.
+
+9. **Model Smoothing**
+   - After adding fake counts, ensure that all bigrams have at least one count.
+   - Re-normalize the counts to maintain valid probability distributions.
 
 ## Part 2: Neural Network Approach
 
-1. **Prepare the Training Set**
-   - Create input-target pairs from the bigrams where the input is the first character and the target is the second character.
-   - Convert these character pairs into integer indices based on the previously defined mapping.
-   - Transform the input and target lists into PyTorch tensors.
+1. **Preparing the Training Set**
+   - Iterate through all names to extract bigram pairs.
+   - Ensure that inputs and targets are correctly aligned.
 
-2. **One-Hot Encode Inputs**
-   - Implement one-hot encoding for the input tensor to create binary vectors representing each character.
-   - Ensure the one-hot encoded tensor has the correct shape corresponding to the number of classes.
+2. **One-Hot Encoding**
+   - Use `torch.nn.functional.one_hot` for encoding.
+   - Convert the one-hot encoded tensor to `float` type for compatibility with the neural network.
 
-3. **Define the Neural Network**
-   - Initialize a single linear layer neural network with appropriate input and output dimensions.
-   - Randomly initialize the weights of the neural network.
+3. **Defining the Neural Network**
+   - Use `torch.nn.Linear` to create the linear layer.
+   - Initialize weights with a normal distribution using `torch.randn`.
 
-4. **Implement the Forward Pass**
-   - Pass the one-hot encoded inputs through the linear layer to obtain logits.
-   - Apply the softmax function to the logits to obtain probability distributions for the next character.
+4. **Forward Pass Implementation**
+   - Pass the one-hot inputs through the linear layer to get logits.
+   - Apply `torch.softmax` along the appropriate dimension to obtain probabilities.
 
-5. **Compute the Loss Function**
-   - Calculate the negative log likelihood loss by comparing the predicted probabilities with the actual targets.
-   - Ensure the loss is averaged over all training examples.
+5. **Loss Function Calculation**
+   - Use `torch.log` on the predicted probabilities.
+   - Gather the log probabilities corresponding to the target indices.
 
-6. **Backpropagation and Weight Update**
-   - Zero out any existing gradients.
-   - Perform backpropagation to compute gradients of the loss with respect to the network's weights.
-   - Update the weights using gradient descent to minimize the loss.
+6. **Backpropagation and Updates**
+   - Zero gradients using `optimizer.zero_grad()` if using an optimizer.
+   - Call `loss.backward()` to compute gradients.
+   - Update weights with `optimizer.step()`.
 
-7. **Iterate Training Over Multiple Epochs**
-   - Run multiple iterations of forward pass, loss computation, backpropagation, and weight updates.
-   - Monitor the loss to ensure it decreases over time, indicating improving model performance.
+7. **Training Loop**
+   - Structure your training loop to include multiple epochs.
+   - Optionally, print the loss at intervals to monitor training progress.
 
-8. **Implement Regularization (Optional)**
-   - Add a regularization term to the loss function to prevent overfitting by penalizing large weights.
-   - Adjust the regularization strength as needed to balance between fitting the data and keeping weights small.
+8. **Regularization Techniques**
+   - Implement L2 regularization by adding the sum of squared weights to the loss.
+   - Adjust the regularization coefficient to control its impact.
 
-9. **Compare Neural Network with Bigram Model**
-   - Ensure that both approaches yield similar performance metrics.
-   - Validate that the neural network effectively learns the bigram probabilities through training.
+9. **Comparing Models**
+   - Check if the neural network's probability distributions align with the bigram counts.
+   - Use the same sampling method for both models to generate comparable outputs.
 
-10. **Sampling from the Neural Network Model**
-    - Use the trained neural network to generate new names by sampling characters based on the predicted probability distributions.
-    - Implement a sampling loop similar to the bigram model but utilizing the neural network for probability predictions.
+10. **Sampling from the Neural Network**
+    - Similar to the bigram model, start with the start token.
+    - Use the neural network to predict the next character based on the current character.
+    - Continue sampling until the end token is generated.
+
+## General Tips
+
+- **PyTorch Basics**
+  - Ensure tensors have the correct shapes and data types before operations.
+  - Utilize `torch.no_grad()` during sampling to prevent gradient calculations.
+
+- **Debugging**
+  - Print intermediate tensors to verify their shapes and contents.
+  - Use assertions to check assumptions about tensor dimensions.
+
+- **Optimization**
+  - Experiment with different learning rates to find a suitable one for convergence.
+  - Consider using optimizers like `torch.optim.SGD` or `torch.optim.Adam` for more efficient training.
+
+- **Efficiency**
+  - Leverage vectorized operations in PyTorch to speed up computations.
+  - Avoid unnecessary loops by utilizing batch processing where possible.
+
+- **Documentation and Resources**
+  - Refer to PyTorch's official documentation for detailed explanations of functions.
+  - Look for PyTorch tutorials and examples that cover similar tasks for additional guidance.
